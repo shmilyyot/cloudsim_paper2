@@ -15,7 +15,7 @@ public class UtilizationModelPlanetLabInMemory implements UtilizationModel {
 	private double schedulingInterval;
 
 	/** The data (5 min * 288 = 24 hours). */
-	private final double[] data; 
+	public double[] data;
 	
 	/**
 	 * Instantiates a new PlanetLab resource utilization model from a trace file.

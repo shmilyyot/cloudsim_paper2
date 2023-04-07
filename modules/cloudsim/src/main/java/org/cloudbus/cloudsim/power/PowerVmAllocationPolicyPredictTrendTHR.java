@@ -17,7 +17,7 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
      * @param vmSelectionPolicy the vm selection policy
      */
 
-    private double utilizationThreshold = 0.9;
+    private double utilizationThreshold = 0.8;
 
     protected void setUtilizationThreshold(double utilizationThreshold) {
         this.utilizationThreshold = utilizationThreshold;
@@ -76,21 +76,27 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
 
     @Override
     protected boolean isHostOverUtilized(PowerHost host) {
-        PowerHostUtilizationHistory _host = (PowerHostUtilizationHistory) host;
         double upperThreshold = getUtilizationThreshold();
         addHistoryEntry(host, upperThreshold);
+//        return isHostCurrentOverUtilized(host);
+        return isHostCurrentOverUtilized(host) && isHostFutureOverUtilized(host) && isHostBeforeOverUtilized(host);
+    }
+
+    protected boolean isHostCurrentOverUtilized(PowerHost host) {
+        PowerHostUtilizationHistory _host = (PowerHostUtilizationHistory) host;
+        double upperThreshold = getUtilizationThreshold();
         double totalRequestedMips = 0;
         for (Vm vm : host.getVmList()) {
             totalRequestedMips += vm.getCurrentRequestedTotalMips();
         }
         double utilization = totalRequestedMips / host.getTotalMips();
-        return utilization > upperThreshold && isHostFutureOverUtilized(host) && isHostBeforeOverUtilized(host);
+        return utilization > upperThreshold;
     }
 
     protected boolean isHostFutureOverUtilized(PowerHost host) {
         PowerHostUtilizationHistory _host = (PowerHostUtilizationHistory) host;
         double upperThreshold = getUtilizationThreshold();
-        return _host.getPredictUtilization()> upperThreshold;
+        return _host.getPredictUtilization() > upperThreshold;
     }
 
     //周期很重要，决定各项指标取舍的最关键因素
@@ -98,6 +104,7 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
         PowerHostUtilizationHistory _host = (PowerHostUtilizationHistory) host;
         double upperThreshold = getUtilizationThreshold();
         double[] utilizationHistory = _host.getUtilizationHistory();
+//        isOverloadLastFiveTimes(utilizationHistory, upperThreshold);
         int maxIndex = 0;
         double maxValue = utilizationHistory[0];
         double totalValue = utilizationHistory[0];
@@ -118,10 +125,33 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
         return false;
     }
 
+    protected void isOverloadLastFiveTimes(double[] utilizationHistory, double upperThreshold){
+        for(int i = 0; i < utilizationHistory.length; ++i){
+            if(utilizationHistory[i] > 0.75){
+                if(i <= 5){
+                    for(int j = 0; j <= i; ++j){
+                        if(utilizationHistory[i] > upperThreshold){
+                            return;
+                        }
+                    }
+                    for(int j = i+1; j < utilizationHistory.length; ++j){
+                        if(utilizationHistory[j] > 0.75){
+                            return;
+                        }
+                    }
+                    if(utilizationHistory.length == 30){
+                        System.out.println(Arrays.toString(utilizationHistory));
+                    }
+                }
+                return;
+            }
+        }
+    }
+
     protected boolean isHostOverUtilizedAfterAllocation(PowerHost host, Vm vm) {
         boolean isHostOverUtilizedAfterAllocation = true;
         if (host.vmCreate(vm)) {
-            isHostOverUtilizedAfterAllocation = (isHostOverUtilized(host) || isHostFutureOverUtilized(host) || isHostBeforeOverUtilized(host));
+            isHostOverUtilizedAfterAllocation = (isHostCurrentOverUtilized(host) || isHostFutureOverUtilized(host) || isHostBeforeOverUtilized(host));
             host.vmDestroy(vm);
         }
         return isHostOverUtilizedAfterAllocation;
@@ -375,9 +405,42 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
         PowerHostUtilizationHistory powerHost = null;
 //        double bestValue = Double.MIN_VALUE;
         double bestValue = Double.MAX_VALUE;
+        double minPower = Double.MAX_VALUE;
         PowerVm powerVm = (PowerVm) vm;
+//        if(CloudSim.clock() < 8699){
+//            for (PowerHost host : this.<PowerHost> getHostList()) {
+//                if (excludedHosts.contains(host)) {
+//                    continue;
+//                }
+//                if (host.isSuitableForVm(vm)) {
+//                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
+//                        continue;
+//                    }
+//
+//                    try {
+//                        double powerAfterAllocation = getPowerAfterAllocation(host, vm);
+//                        if (powerAfterAllocation != -1) {
+//                            double oripower = host.getPower();
+//						if(host.getUtilizationOfCpu() == 0)
+//						{
+//							oripower = 0;
+//						}
+//                            double powerDiff = powerAfterAllocation - oripower;
+//                            if (powerDiff < minPower) {
+//                                minPower = powerDiff;
+//                                powerHost = (PowerHostUtilizationHistory) host;
+//                            }
+//                        }
+//                    } catch (Exception e) {
+//                    }
+//                }
+//            }
+//            return powerHost;
+//        }
+        List<PowerHost> idleHostList = buildIdleHost();
+        HashSet<PowerHost> idleHostSet = new HashSet<>(idleHostList);
         for(PowerHostUtilizationHistory host : hostList){
-            if (excludedHosts.contains(host)) {
+            if (excludedHosts.contains(host) || idleHostSet.contains(host)) {
                 continue;
             }
             if (host.isSuitableForVm(powerVm)) {
@@ -460,13 +523,47 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
                 double []v1 = {host.getLastTrend() * host.getTotalMips() / host.getVmList().size(), host.getTrend() * host.getTotalMips() / host.getVmList().size()};
                 double []v2 = {powerVm.getMips() * powerVm.getLastTrend(), powerVm.getMips() * powerVm.getTrend()};
                 double cosSine = MathUtil.cosineSimilarity(v1, v2);
+//                System.out.println(cosSine);
+//                if(Double.isNaN(cosSine)){
+//                    if(getUtilizationOfCpuMips(host) == 0){
+//                        cosSine = -1 * host.getTotalMips();
+//                    }else{
+//                        cosSine = 0;
+//                    }
+//                }
                 if(cosSine < bestValue){
                     bestValue = cosSine;
                     powerHost = host;
                 }
             }
         }
+        if(powerHost == null){
+            for (PowerHost host: idleHostList){
+                if (excludedHosts.contains(host)) {
+                    continue;
+                }
+                if (host.isSuitableForVm(vm)) {
+                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
+                        continue;
+                    }
+                    return (PowerHostUtilizationHistory) host;
+                }
+            }
+        }
+
         return powerHost;
     }
+
+    List<PowerHost> buildIdleHost(){
+        List<PowerHost> hostList = getHostList();
+        List<PowerHost> tempHost = new ArrayList<>();
+        for(PowerHost host: hostList){
+            if(host.getUtilizationOfCpu() == 0){
+                tempHost.add(host);
+            }
+        }
+        return tempHost;
+    }
+
 
 }

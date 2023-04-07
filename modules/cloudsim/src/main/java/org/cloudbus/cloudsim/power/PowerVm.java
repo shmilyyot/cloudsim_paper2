@@ -226,17 +226,18 @@ public class PowerVm extends Vm {
 	public double getTrend(){
 		double currentUtilization = this.getTotalUtilizationOfCpu(CloudSim.clock());
 		double predictUtilization = this.getPredictUtilization(CloudSim.clock());
-//		List<Double> utilizationHistoryCopy = new ArrayList<>(this.getUtilizationHistory());
-//		if(utilizationHistoryCopy.size() < HISTORY_LENGTH){
-//			return 0;
-//		}
-//		utilizationHistoryCopy.add(0, currentUtilization);
-//		utilizationHistoryCopy.remove(HISTORY_LENGTH);
-//		double[] utilizationHistory = MathUtil.doubleListToArray(utilizationHistoryCopy);
-//		double[] reverseUtilizationHistory = MathUtil.reverseArray(utilizationHistory);
-//		double predictUtilization = MathUtil.arimaPredict(reverseUtilizationHistory);
 		if(predictUtilization < 0.001){
-			return getLastTrend();
+//			List<Double> utilizationHistoryCopy = new ArrayList<>(this.getUtilizationHistory());
+//			if(utilizationHistoryCopy.size() < HISTORY_LENGTH){
+//				return getLastTrend();
+//			}
+//			double[] utilizationHistory = MathUtil.doubleListToArray(utilizationHistoryCopy);
+//			double[] reverseUtilizationHistory = MathUtil.reverseArray(utilizationHistory);
+//			predictUtilization = MathUtil.arimaPredict(reverseUtilizationHistory);
+//			if(predictUtilization < 0.001){
+//				return getLastTrend();
+//			}
+			return 0;
 		}
 		return predictUtilization - currentUtilization;
 	}

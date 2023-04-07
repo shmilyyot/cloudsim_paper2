@@ -16,7 +16,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
     /** The static host CPU utilization threshold to detect over utilization.
      * It is a percentage value from 0 to 1
      * that can be changed when creating an instance of the class. */
-    private double utilizationThreshold = 0.9;
+    private double utilizationThreshold = 0.8;
 
     /**
      * Instantiates a new PowerVmAllocationPolicyMigrationStaticThreshold.
@@ -42,7 +42,32 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
     @Override
     protected boolean isHostOverUtilized(PowerHost host) {
         addHistoryEntry(host, getUtilizationThreshold());
-        return loadMovingAvg((PowerHostUtilizationHistory) host, 3) > getUtilizationThreshold();
+        double totalRequestedMips = 0;
+        for (Vm vm : host.getVmList()) {
+            totalRequestedMips += vm.getCurrentRequestedTotalMips();
+        }
+        double utilization = totalRequestedMips / host.getTotalMips();
+//        return loadMovingAvg((PowerHostUtilizationHistory) host, 5) > getUtilizationThreshold();
+        return utilization > getUtilizationThreshold();
+    }
+
+    protected boolean isHostCurrentUtilized(PowerHost host) {
+        addHistoryEntry(host, getUtilizationThreshold());
+        double totalRequestedMips = 0;
+        for (Vm vm : host.getVmList()) {
+            totalRequestedMips += vm.getCurrentRequestedTotalMips();
+        }
+        double utilization = totalRequestedMips / host.getTotalMips();
+        return utilization > getUtilizationThreshold();
+    }
+
+    protected boolean isHostOverUtilizedAfterAllocation(PowerHost host, Vm vm) {
+        boolean isHostOverUtilizedAfterAllocation = true;
+        if (host.vmCreate(vm)) {
+            isHostOverUtilizedAfterAllocation = isHostCurrentUtilized(host);
+            host.vmDestroy(vm);
+        }
+        return isHostOverUtilizedAfterAllocation;
     }
 
     /**
@@ -71,8 +96,8 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
 
         //创建三个列表
         List<PowerHost> idleList = buildIdleHost();
-        TreeMap<Long, List<PowerHost>> LrList = buildLr();
         List<PowerHost> SH = buildSH();
+        TreeMap<Long, List<PowerHost>> LrList = buildLr();
 
         // 遍历最佳cpuoffer
         if(LrList.containsKey(vmOffer)){
@@ -139,6 +164,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
 
     TreeMap<Long, List<PowerHost>> buildLr(){
         List<PowerHost> hostList = getHostList();
+        hostList.sort(Comparator.comparing(PowerHost::getPeakPeff).reversed());
         TreeMap<Long, List<PowerHost>> Lr = new TreeMap<>();
         for(PowerHost host: hostList){
             if(isHostOverUtilized(host) || host.getUtilizationOfCpu() == 0){
@@ -164,12 +190,8 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
     double loadMovingAvg(PowerHostUtilizationHistory host, int W_SIZE){
         double[] utilizationWindows = new double[W_SIZE];
         double[] host_utilization = host.getUtilizationHistory();
-        if(host_utilization.length < 3){
-            double totalRequestedMips = 0;
-            for (Vm vm : host.getVmList()) {
-                totalRequestedMips += vm.getCurrentRequestedTotalMips();
-            }
-            return totalRequestedMips / host.getTotalMips();
+        if(host_utilization.length < W_SIZE){
+            return host.getUtilizationOfCpu();
         }
         System.arraycopy(host_utilization, 0, utilizationWindows, 0, W_SIZE);
         double ans = 0.0;
@@ -191,7 +213,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
             utilizations.add(utilization);
         }
         utilizations.sort(Comparator.comparingDouble(a -> a));
-        int p25 = (int) (utilizations.size() * 0.25), p75 = (int) (utilizations.size() * 0.75);
+        int p25 = (utilizations.size() + 1) / 4 , p75 = 3 * (utilizations.size() + 1) / 4;
         double total = 0.0;
         for(int i = p25; i <= p75; ++i){
             total += utilizations.get(i);
@@ -202,11 +224,15 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
     protected PowerHost getUnderUtilizedHost(Set<? extends Host> excludedHosts) {
         PowerHost underUtilizedHost = null;
         double aliq = thresholdALIQ();
+        double minValue = Double.MAX_VALUE;
         for (PowerHost host : this.<PowerHost> getHostList()) {
             if (excludedHosts.contains(host)) {
                 continue;
             }
-            if(host.getUtilizationOfCpu() > 0 && host.getUtilizationOfCpu() < aliq && !areAllVmsMigratingOutOrAnyVmMigratingIn(host)){
+            double utilization = loadMovingAvg((PowerHostUtilizationHistory) host, 5);
+            if(host.getUtilizationOfCpu() > 0 && utilization < aliq && utilization < minValue && !areAllVmsMigratingOutOrAnyVmMigratingIn(host)){
+                minValue = utilization;
+                underUtilizedHost = host;
                 return host;
             }
         }

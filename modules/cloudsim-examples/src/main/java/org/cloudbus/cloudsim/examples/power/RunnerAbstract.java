@@ -306,6 +306,11 @@ public abstract class RunnerAbstract {
 					hostList,
 					vmSelectionPolicy,
 					parameter);
+		}else if(vmAllocationPolicyName.equals("pavmp")){
+			vmAllocationPolicy = new PowerVmAllocationPolicyMigrationPAVMP(
+					hostList,
+					vmSelectionPolicy,
+					parameter);
 		}
 		else {
 			System.out.println("Unknown VM allocation policy: " + vmAllocationPolicyName);

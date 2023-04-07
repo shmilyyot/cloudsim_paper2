@@ -49,12 +49,12 @@ public class MathUtil {
 		list.add(0.02405075187969925);
 		list.add(0.024182330827067666);
 		list.add(0.013167293233082706);
-		list.add(0.015714285714285712);
-		list.add(0.014454887218045111);
-		list.add(0.01);
-		list.add(0.02450187969924812);
-		list.add(0.027077067669172936);
-		list.add(0.012988721804511277);
+//		list.add(0.015714285714285712);
+//		list.add(0.014454887218045111);
+//		list.add(0.01);
+//		list.add(0.02450187969924812);
+//		list.add(0.027077067669172936);
+//		list.add(0.012988721804511277);
 		int len = list.size();
 		double[] utilizationHistoryReversed = new double[len];
 		for (int i = 0; i < len; i++) {
@@ -426,7 +426,7 @@ public class MathUtil {
 		TimeSeries timeSeries = TimeSeries.from(data);
 		List<ArimaOrder> models = new ArrayList<>();
 		for (int p = 0; p <= 5; p++)
-			for (int d = 0; d <= 2; d++)
+			for (int d = 0; d < 2; d++)
 				for (int q = 0; q <= 5; q++) {
 					models.add(ArimaOrder.order(p, d, q, Arima.Drift.INCLUDE));
 				}
@@ -474,7 +474,7 @@ public class MathUtil {
 		TimeSeries timeSeries = TimeSeries.from(data);
 		List<ArimaOrder> models = new ArrayList<>();
 		for (int p = 0; p < 5; p++)
-			for (int d = 0; d < 2; d++)
+			for (int d = 0; d <= 2; d++)
 				for (int q = 0; q < 5; q++) {
 					models.add(ArimaOrder.order(p, d, q, Arima.Drift.INCLUDE));
 				}
@@ -571,5 +571,66 @@ public class MathUtil {
 		}
 		return (k * muti - ASum * BSum) / (Math.sqrt(k * ASquare - Math.pow(BSum, 2)) * Math.sqrt(k * BSquare - Math.pow(ASum, 2)));
 	}
+
+	public ArrayList<Double> arrayToList(double[] data){
+		ArrayList<Double> list = new ArrayList<>();
+		for (double datum : data) {
+			list.add(datum);
+		}
+		return list;
+	}
+
+	public static double calRMSE(ArrayList<Double> predictData,ArrayList<Double> originalData)
+	{
+		double totalpow = 0.0;
+		for(int i = 0; i < predictData.size() - 1; ++i)
+		{
+			totalpow += Math.pow(predictData.get(i) - originalData.get(i), 2);
+		}
+		double RMSE = Math.sqrt(totalpow / (predictData.size()-1));
+		return RMSE;
+	}
+
+	public static double calMAE(ArrayList<Double> predictData,ArrayList<Double> originalData)
+	{
+		double totalmedian = 0.0;
+		for(int i = 0; i < predictData.size() - 1; ++i)
+		{
+			totalmedian += Math.abs(predictData.get(i) - originalData.get(i));
+		}
+		double MAE = totalmedian / (predictData.size()-1);
+		return MAE;
+	}
+
+	public static double calMAPE(ArrayList<Double> predictData,ArrayList<Double> originalData)
+	{
+		double totalmedian = 0.0;
+		for(int i = 0; i < predictData.size() - 1; ++i)
+		{
+			totalmedian += Math.abs((predictData.get(i) - originalData.get(i)) / originalData.get(i));
+		}
+		double MAPE = totalmedian / (predictData.size()-1) * 100;
+		return MAPE;
+	}
+
+	public static double calThief(ArrayList<Double> predictData,ArrayList<Double> originalData)
+	{
+		double RMSE = calRMSE(predictData,originalData);
+		double totalpow = 0.0;
+		for(int i = 0; i < predictData.size() - 1; ++i)
+		{
+			totalpow += Math.pow(predictData.get(i), 2);
+		}
+		totalpow /= (predictData.size()-1);
+		double totalpowori = 0.0;
+		for(int i = 0; i < predictData.size() - 1; ++i)
+		{
+			totalpowori += Math.pow(originalData.get(i), 2);
+		}
+		totalpowori /= (predictData.size()-1);
+		double Thief = RMSE / (Math.sqrt(totalpow) + Math.sqrt(totalpowori));
+		return Thief;
+	}
+
 
 }

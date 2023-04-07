@@ -30,4 +30,9 @@ public class UtilizationModelFull implements UtilizationModel {
 		return 1;
 	}
 
+	@Override
+	public double[] getData() {
+		return new double[0];
+	}
+
 }

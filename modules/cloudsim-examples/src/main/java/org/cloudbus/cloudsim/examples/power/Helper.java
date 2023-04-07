@@ -459,6 +459,34 @@ public class Helper {
 			Log.printLine();
 		}
 
+		double RMSE = 0;
+		double MAE = 0;
+		double thief = 0;
+		int cnt = 0;
+
+		for(Vm vm: vms){
+			PowerVm powerVm = (PowerVm) vm;
+			double[] data = powerVm.getPredictUtilization();
+			double[] olddata = powerVm.getCloudletScheduler().getCloudletExecList().get(0).getCloudlet().getUtilizationModelCpu().getData();
+			ArrayList<Double> a = new ArrayList<>(), b = new ArrayList<>();
+			for(int i = 30; i < data.length - 1; ++i){
+				a.add(data[i]);
+				b.add(olddata[i]);
+			}
+			double tempR = MathUtil.calRMSE(a, b);
+			double tempM = MathUtil.calMAE(a, b);
+			double tempT = MathUtil.calThief(a, b);
+			if(!Double.isNaN(tempR) && !Double.isNaN(tempM) && !Double.isNaN(tempT)){
+				RMSE += tempR;
+				MAE += tempM;
+				thief += tempT;
+				cnt++;
+			}
+		}
+		System.out.println();
+		System.out.println("RMSE : " + RMSE/cnt);
+		System.out.println("MAE : " + MAE/cnt);
+		System.out.println("Thief : " + thief/cnt);
 		Log.setDisabled(true);
 	}
 

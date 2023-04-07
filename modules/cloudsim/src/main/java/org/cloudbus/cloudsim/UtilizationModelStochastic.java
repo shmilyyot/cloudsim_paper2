@@ -65,6 +65,11 @@ public class UtilizationModelStochastic implements UtilizationModel {
 		return utilization;
 	}
 
+	@Override
+	public double[] getData() {
+		return new double[0];
+	}
+
 	/**
 	 * Gets the utilization history.
 	 * 

@@ -56,7 +56,6 @@ public class PlanetLabHelper {
 				path.add(file.getAbsolutePath());
 			}
 		}
-
 		for (int i = 0; i < path.size(); i++) {
 			Cloudlet cloudlet = null;
 			try {
@@ -84,7 +83,7 @@ public class PlanetLabHelper {
 //					predictData[j] = MathUtil.arimaPredict(tempData, arimaOrder);
 //				}
 //				System.out.println(Arrays.toString(predictData));
-//				File file = new File(inputFolderName + "/vm_" + i +".obj");
+//				File file = new File(inputFolderName + "/predict/vm_" + i +".obj");
 //				try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(file.toPath())))
 //				{
 //					out.writeObject(predictData);

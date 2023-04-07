@@ -10,7 +10,7 @@ import java.util.*;
 
 public class PowerVmAllocationPolicyMigrationUPVMC extends
         PowerVmAllocationPolicyMigrationAbstract{
-    private double utilizationThreshold = 0.9;
+    private double utilizationThreshold = 0.8;
     private double schedulingInterval = 300;
 
 
@@ -26,13 +26,20 @@ public class PowerVmAllocationPolicyMigrationUPVMC extends
     @Override
     protected boolean isHostOverUtilized(PowerHost host) {
         addHistoryEntry(host, getUtilizationThreshold());
+        boolean futureOverload = isHostFutureOverUtilized(host);
+        boolean currentOverload = isHostCurrentOverUtilized(host);
+        return currentOverload|| futureOverload;
+    }
+
+    protected boolean isHostCurrentOverUtilized(PowerHost host) {
+        addHistoryEntry(host, getUtilizationThreshold());
         double totalRequestedMips = 0;
         for (Vm vm : host.getVmList()) {
             totalRequestedMips += vm.getCurrentRequestedTotalMips();
         }
         double utilization = totalRequestedMips / host.getTotalMips();
         boolean futureOverload = isHostFutureOverUtilized(host);
-        return utilization > getUtilizationThreshold() || futureOverload;
+        return utilization > getUtilizationThreshold();
     }
 
     protected boolean isHostFutureOverUtilized(PowerHost host) {
@@ -56,7 +63,7 @@ public class PowerVmAllocationPolicyMigrationUPVMC extends
         double predictedUtilization = estimates[0] + estimates[1] * (length + migrationIntervals);
 //        predictedUtilization *= 1.2;
 
-        addHistoryEntry(host, predictedUtilization);
+//        addHistoryEntry(host, predictedUtilization);
         return predictedUtilization > getUtilizationThreshold();
     }
 
@@ -102,8 +109,57 @@ public class PowerVmAllocationPolicyMigrationUPVMC extends
 
     protected boolean isHostFutureOverUtilizedAfterAllocation(PowerHost host, Vm vm) {
         boolean isHostOverUtilizedAfterAllocation = true;
+        PowerVm powerVm = (PowerVm) vm;
+        List<Double> vmUsages = powerVm.getUtilizationHistory();
+        double[] vmHistory = MathUtil.doubleListToArray(vmUsages);
+        int length = 10; // we use 10 to make the regression responsive enough to latest values
+        if (vmHistory.length < length) {
+            return false;
+        }
+        double[] utilizationHistoryReversed = new double[length];
+        for (int i = 0; i < length; i++) {
+            utilizationHistoryReversed[i] = vmHistory[length - i - 1];
+        }
+        double[] estimates = null;
+        try {
+            estimates = getParameterEstimates(utilizationHistoryReversed);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        double vmPredictedUtilization = estimates[0] + estimates[1] * length;
+
+        PowerHostUtilizationHistory _host = (PowerHostUtilizationHistory) host;
+        double[] utilizationHistory = _host.getUtilizationHistory();
+        if (utilizationHistory.length < length) {
+            return false;
+        }
+        double[] hostUtilizationHistoryReversed = new double[length];
+        for (int i = 0; i < length; i++) {
+            utilizationHistoryReversed[i] = utilizationHistory[length - i - 1];
+        }
+        double[] hostEstimates = null;
+        try {
+            hostEstimates = getParameterEstimates(utilizationHistoryReversed);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        double migrationIntervals = Math.ceil(getMaximumVmMigrationTime(_host) / getSchedulingInterval());
+        double predictedUtilization = hostEstimates[0] + hostEstimates[1] * (length + migrationIntervals);
+
+
+
+//        if (host.vmCreate(vm)) {
+//            isHostOverUtilizedAfterAllocation = isHostFutureOverUtilized(host);
+//            host.vmDestroy(vm);
+//        }
+
+        return (vmPredictedUtilization * powerVm.getMips() + predictedUtilization * _host.getTotalMips()) > getUtilizationThreshold() * _host.getTotalMips();
+    }
+
+    protected boolean isHostOverUtilizedAfterAllocation(PowerHost host, Vm vm) {
+        boolean isHostOverUtilizedAfterAllocation = true;
         if (host.vmCreate(vm)) {
-            isHostOverUtilizedAfterAllocation = isHostFutureOverUtilized(host);
+            isHostOverUtilizedAfterAllocation = isHostCurrentOverUtilized(host);
             host.vmDestroy(vm);
         }
         return isHostOverUtilizedAfterAllocation;
@@ -120,7 +176,7 @@ public class PowerVmAllocationPolicyMigrationUPVMC extends
                 continue;
             }
             if (host.isSuitableForVm(vm)) {
-                if (getUtilizationOfCpuMips(host) != 0 && (isHostOverUtilizedAfterAllocation(host, vm) || isHostFutureOverUtilizedAfterAllocation(host, vm))) {
+                if (isHostOverUtilizedAfterAllocation(host, vm) || isHostFutureOverUtilizedAfterAllocation(host, vm)) {
                     continue;
                 }
                 return host;
@@ -134,38 +190,38 @@ public class PowerVmAllocationPolicyMigrationUPVMC extends
         List<PowerHost> hostList = getHostList();
         List<PowerHost> activeHost = new ArrayList<>();
         List<PowerHost> idleHosts = new ArrayList<>();
-        for(PowerHost host:hostList){
-            if(host.getUtilizationOfCpu() != 0.0){
-                activeHost.add(host);
-            }else{
-                idleHosts.add(host);
-            }
-        }
+//        for(PowerHost host:hostList){
+//            if(host.getUtilizationOfCpu() != 0.0){
+//                activeHost.add(host);
+//            }else{
+//                idleHosts.add(host);
+//            }
+//        }
 
-        for(PowerHost host: activeHost){
+        for(PowerHost host: hostList){
             if (excludedHosts.contains(host)) {
                 continue;
             }
             if (host.isSuitableForVm(vm)) {
-                if (getUtilizationOfCpuMips(host) != 0 && (isHostOverUtilizedAfterAllocation(host, vm) || isHostFutureOverUtilizedAfterAllocation(host, vm))) {
+                if (isHostOverUtilizedAfterAllocation(host, vm) || isHostFutureOverUtilizedAfterAllocation(host, vm)) {
                     continue;
                 }
                 return host;
             }
         }
 
-        for(PowerHost host: idleHosts){
-            if (excludedHosts.contains(host)) {
-                continue;
-            }
-            if (host.isSuitableForVm(vm)) {
-                if (getUtilizationOfCpuMips(host) != 0 && (isHostOverUtilizedAfterAllocation(host, vm) || isHostFutureOverUtilizedAfterAllocation(host, vm))) {
-                    continue;
-                }
-                allocatedHost = host;
-                break;
-            }
-        }
+//        for(PowerHost host: idleHosts){
+//            if (excludedHosts.contains(host)) {
+//                continue;
+//            }
+//            if (host.isSuitableForVm(vm)) {
+//                if (getUtilizationOfCpuMips(host) != 0 && (isHostOverUtilizedAfterAllocation(host, vm) || isHostFutureOverUtilizedAfterAllocation(host, vm))) {
+//                    continue;
+//                }
+//                allocatedHost = host;
+//                break;
+//            }
+//        }
         return allocatedHost;
     }
 

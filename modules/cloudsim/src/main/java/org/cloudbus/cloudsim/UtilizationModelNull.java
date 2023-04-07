@@ -22,4 +22,9 @@ public class UtilizationModelNull implements UtilizationModel {
 		return 0;
 	}
 
+	@Override
+	public double[] getData() {
+		return new double[0];
+	}
+
 }
