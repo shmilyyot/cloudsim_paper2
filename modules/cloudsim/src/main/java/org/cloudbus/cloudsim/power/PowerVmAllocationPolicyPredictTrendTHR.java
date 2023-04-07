@@ -79,7 +79,7 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
         double upperThreshold = getUtilizationThreshold();
         addHistoryEntry(host, upperThreshold);
 //        return isHostCurrentOverUtilized(host);
-        return isHostCurrentOverUtilized(host) && isHostFutureOverUtilized(host) && isHostBeforeOverUtilized(host);
+        return isHostCurrentOverUtilized(host) || isHostFutureOverUtilized(host) || isHostBeforeOverUtilized(host);
     }
 
     protected boolean isHostCurrentOverUtilized(PowerHost host) {
@@ -440,9 +440,12 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
         List<PowerHost> idleHostList = buildIdleHost();
         HashSet<PowerHost> idleHostSet = new HashSet<>(idleHostList);
         for(PowerHostUtilizationHistory host : hostList){
-            if (excludedHosts.contains(host) || idleHostSet.contains(host)) {
+            if (excludedHosts.contains(host)) {
                 continue;
             }
+//            if(idleHostSet.contains(host)){
+//                continue;
+//            }
             if (host.isSuitableForVm(powerVm)) {
                 if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, powerVm)) {
                     continue;
@@ -537,19 +540,19 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
                 }
             }
         }
-        if(powerHost == null){
-            for (PowerHost host: idleHostList){
-                if (excludedHosts.contains(host)) {
-                    continue;
-                }
-                if (host.isSuitableForVm(vm)) {
-                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
-                        continue;
-                    }
-                    return (PowerHostUtilizationHistory) host;
-                }
-            }
-        }
+//        if(powerHost == null){
+//            for (PowerHost host: idleHostList){
+//                if (excludedHosts.contains(host)) {
+//                    continue;
+//                }
+//                if (host.isSuitableForVm(vm)) {
+//                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
+//                        continue;
+//                    }
+//                    return (PowerHostUtilizationHistory) host;
+//                }
+//            }
+//        }
 
         return powerHost;
     }
