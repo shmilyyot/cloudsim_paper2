@@ -97,7 +97,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
         //创建三个列表
         List<PowerHost> idleList = buildIdleHost();
         List<PowerHost> SH = buildSH();
-        TreeMap<Long, List<PowerHost>> LrList = buildLr();
+        TreeMap<Long, List<PowerHost>> LrList = buildLr(SH);
 
         // 遍历最佳cpuoffer
         if(LrList.containsKey(vmOffer)){
@@ -162,9 +162,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
         return tempHost;
     }
 
-    TreeMap<Long, List<PowerHost>> buildLr(){
-        List<PowerHost> hostList = getHostList();
-        hostList.sort(Comparator.comparing(PowerHost::getPeakPeff).reversed());
+    TreeMap<Long, List<PowerHost>> buildLr(List<PowerHost> hostList){
         TreeMap<Long, List<PowerHost>> Lr = new TreeMap<>();
         for(PowerHost host: hostList){
             if(isHostOverUtilized(host) || host.getUtilizationOfCpu() == 0){
@@ -213,7 +211,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
             utilizations.add(utilization);
         }
         utilizations.sort(Comparator.comparingDouble(a -> a));
-        int p25 = (utilizations.size() + 1) / 4 , p75 = 3 * (utilizations.size() + 1) / 4;
+        int p25 = (utilizations.size()) / 4 , p75 = 3 * (utilizations.size()) / 4;
         double total = 0.0;
         for(int i = p25; i <= p75; ++i){
             total += utilizations.get(i);
@@ -229,8 +227,8 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
             if (excludedHosts.contains(host)) {
                 continue;
             }
-            double utilization = loadMovingAvg((PowerHostUtilizationHistory) host, 3);
-            if(host.getUtilizationOfCpu() > 0 && utilization < aliq &&  !areAllVmsMigratingOutOrAnyVmMigratingIn(host)){
+//            double utilization = loadMovingAvg((PowerHostUtilizationHistory) host, 3);
+            if(host.getUtilizationOfCpu() > 0 && host.getUtilizationOfCpu() < aliq &&  !areAllVmsMigratingOutOrAnyVmMigratingIn(host)){
 //                minValue = utilization;
 //                underUtilizedHost = host;
                 return host;
