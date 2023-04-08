@@ -47,7 +47,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
             totalRequestedMips += vm.getCurrentRequestedTotalMips();
         }
         double utilization = totalRequestedMips / host.getTotalMips();
-//        return loadMovingAvg((PowerHostUtilizationHistory) host, 5) > getUtilizationThreshold();
+//        return loadMovingAvg((PowerHostUtilizationHistory) host, 3) > getUtilizationThreshold();
         return utilization > getUtilizationThreshold();
     }
 
@@ -229,10 +229,10 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
             if (excludedHosts.contains(host)) {
                 continue;
             }
-            double utilization = loadMovingAvg((PowerHostUtilizationHistory) host, 5);
-            if(host.getUtilizationOfCpu() > 0 && utilization < aliq && utilization < minValue && !areAllVmsMigratingOutOrAnyVmMigratingIn(host)){
-                minValue = utilization;
-                underUtilizedHost = host;
+            double utilization = loadMovingAvg((PowerHostUtilizationHistory) host, 3);
+            if(host.getUtilizationOfCpu() > 0 && utilization < aliq &&  !areAllVmsMigratingOutOrAnyVmMigratingIn(host)){
+//                minValue = utilization;
+//                underUtilizedHost = host;
                 return host;
             }
         }

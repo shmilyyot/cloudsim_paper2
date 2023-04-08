@@ -463,7 +463,7 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
 //                vmUsedMips[1] = powerVm.getCurrentRequestedTotalMips();
 //                vmUsedMips[2] = powerVm.getPredictUtilization(CloudSim.clock()) * vm.getMips();
 //
-//                double cosSine = -MathUtil.cosineSimilarity(hostLeftMips, vmUsedMips);
+//                double cosSine = MathUtil.cosineSimilarity(hostLeftMips, vmUsedMips);
 //                if(cosSine <= bestValue){
 //                    bestValue = cosSine;
 //                    powerHost = host;
@@ -526,15 +526,10 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
                 double []v1 = {host.getLastTrend() * host.getTotalMips() / host.getVmList().size(), host.getTrend() * host.getTotalMips() / host.getVmList().size()};
                 double []v2 = {powerVm.getMips() * powerVm.getLastTrend(), powerVm.getMips() * powerVm.getTrend()};
                 double cosSine = MathUtil.cosineSimilarity(v1, v2);
-//                System.out.println(cosSine);
-//                if(Double.isNaN(cosSine)){
-//                    if(getUtilizationOfCpuMips(host) == 0){
-//                        cosSine = -1 * host.getTotalMips();
-//                    }else{
-//                        cosSine = 0;
-//                    }
+//                if(Double.isNaN(cosSine) && getUtilizationOfCpuMips(host) != 0) {
+//                    cosSine = -host.getUtilizationOfCpu();
 //                }
-                if(cosSine < bestValue){
+                if(cosSine <= bestValue){
                     bestValue = cosSine;
                     powerHost = host;
                 }
@@ -546,9 +541,6 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
 //                    continue;
 //                }
 //                if (host.isSuitableForVm(vm)) {
-//                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
-//                        continue;
-//                    }
 //                    return (PowerHostUtilizationHistory) host;
 //                }
 //            }
