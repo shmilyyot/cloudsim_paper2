@@ -14,9 +14,9 @@ public class PEAP {
     public static void main(String[] args) throws IOException {
         boolean enableOutput = true;
         boolean outputToFile = true;
-        String inputFolder = NonPowerAware.class.getClassLoader().getResource("workload/planetlab").getPath();
+        String inputFolder = NonPowerAware.class.getClassLoader().getResource("workload/google").getPath();
         String outputFolder = "output";
-        String workload = "20110306"; // PlanetLab workload
+        String workload = "20110503"; // PlanetLab workload
         String vmAllocationPolicy = "peap"; // Static Threshold (THR) VM allocation policy
         String vmSelectionPolicy = "peacr"; // Minimum Migration Time (MMT) VM selection policy
         String parameter = "0.8"; // the static utilization threshold

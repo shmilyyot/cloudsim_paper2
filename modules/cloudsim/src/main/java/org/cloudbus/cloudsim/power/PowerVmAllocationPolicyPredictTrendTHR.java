@@ -78,8 +78,8 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
     protected boolean isHostOverUtilized(PowerHost host) {
         double upperThreshold = getUtilizationThreshold();
         addHistoryEntry(host, upperThreshold);
-//        return isHostCurrentOverUtilized(host);
-        return isHostCurrentOverUtilized(host) || isHostFutureOverUtilized(host) || isHostBeforeOverUtilized(host);
+        return isHostCurrentOverUtilized(host);
+//        return isHostCurrentOverUtilized(host) || isHostFutureOverUtilized(host) || isHostBeforeOverUtilized(host);
     }
 
     protected boolean isHostCurrentOverUtilized(PowerHost host) {
@@ -526,10 +526,10 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
                 double []v1 = {host.getLastTrend() * host.getTotalMips() / host.getVmList().size(), host.getTrend() * host.getTotalMips() / host.getVmList().size()};
                 double []v2 = {powerVm.getMips() * powerVm.getLastTrend(), powerVm.getMips() * powerVm.getTrend()};
                 double cosSine = MathUtil.cosineSimilarity(v1, v2);
-//                if(Double.isNaN(cosSine) && getUtilizationOfCpuMips(host) != 0) {
-//                    cosSine = -host.getUtilizationOfCpu();
+//                if(Double.isNaN(cosSine)) {
+//                    cosSine = 1;
 //                }
-                if(cosSine <= bestValue){
+                if(cosSine < bestValue){
                     bestValue = cosSine;
                     powerHost = host;
                 }

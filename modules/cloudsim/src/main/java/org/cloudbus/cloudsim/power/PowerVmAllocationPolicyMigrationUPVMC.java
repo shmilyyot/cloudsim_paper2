@@ -28,7 +28,7 @@ public class PowerVmAllocationPolicyMigrationUPVMC extends
         addHistoryEntry(host, getUtilizationThreshold());
         boolean futureOverload = isHostFutureOverUtilized(host);
         boolean currentOverload = isHostCurrentOverUtilized(host);
-        return currentOverload|| futureOverload;
+        return currentOverload;
     }
 
     protected boolean isHostCurrentOverUtilized(PowerHost host) {

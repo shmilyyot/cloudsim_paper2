@@ -159,7 +159,7 @@ public class Vm {
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
 		try {
-			ObjectInputStream input = new ObjectInputStream(Files.newInputStream(Paths.get("modules/cloudsim-examples/target/classes/workload/google/20110504/predict\\vm_"+id+".obj")));
+			ObjectInputStream input = new ObjectInputStream(Files.newInputStream(Paths.get("modules/cloudsim-examples/target/classes/workload/google/20110503/predict\\vm_"+id+".obj")));
 			double[] data = (double[]) input.readObject();
 			setPredictUtilization(data);
 		} catch (Exception e) {

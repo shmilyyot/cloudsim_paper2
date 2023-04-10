@@ -522,6 +522,9 @@ public class MathUtil {
 			b += Math.pow(B[i], 2);
 		}
 		denominator = Math.sqrt(a) * Math.sqrt(b);
+		if(denominator == 0){
+			return 1;
+		}
 		return numerator / denominator;
 	}
 

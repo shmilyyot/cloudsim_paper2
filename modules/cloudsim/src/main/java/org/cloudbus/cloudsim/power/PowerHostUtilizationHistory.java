@@ -104,7 +104,7 @@ public class PowerHostUtilizationHistory extends PowerHost {
 	//Todo 当前时刻利用率不在预测历史利用率里面
 	public double getTrend() {
 		double curUtilization = this.getUtilizationOfCpu();
-		if(CloudSim.clock() < 8699.0)
+		if(CloudSim.clock() < 1799.0)
 		{
 			return 0;
 		}
@@ -125,7 +125,7 @@ public class PowerHostUtilizationHistory extends PowerHost {
 
 	public double getLastTrend(){
 		double curUtilization = this.getUtilizationOfCpu();
-		if(CloudSim.clock() < 8699.0)
+		if(CloudSim.clock() < 1799.0)
 		{
 			return 0;
 		}

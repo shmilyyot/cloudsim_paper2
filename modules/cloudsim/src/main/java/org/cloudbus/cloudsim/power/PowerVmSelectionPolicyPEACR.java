@@ -19,7 +19,7 @@ public class PowerVmSelectionPolicyPEACR extends PowerVmSelectionPolicy {
             if (vm.isInMigration()) {
                 continue;
             }
-            double metric = Math.abs(cpuOver - vm.getMips() * vm.getTotalUtilizationOfCpuMips(CloudSim.clock()) / 1000) * host.getRam() / host.getBw() ;
+            double metric = Math.abs(cpuOver - vm.getTotalUtilizationOfCpuMips(CloudSim.clock()) / 1000) * host.getRam() / host.getBw() ;
             if (metric < minMetric) {
                 minMetric = metric;
                 vmToMigrate = vm;
