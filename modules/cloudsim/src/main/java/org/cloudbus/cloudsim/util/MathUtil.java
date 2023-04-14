@@ -16,10 +16,9 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.*;
 
 /**
  * A class containing multiple convenient math functions.
@@ -29,7 +28,7 @@ import java.util.List;
  * @todo Using Java 8 Stream, some methods here can be improved or removed.
  */
 public class MathUtil {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		List<Double> list = new LinkedList<>();
 //		list.add(1.0);
 //		list.add(2.1);
@@ -63,7 +62,8 @@ public class MathUtil {
 //		double[] estimates = getLoessParameterEstimates(utilizationHistoryReversed);
 //		double predictedUtilization = estimates[0] + estimates[1] * (length);
 //		System.out.println(predictedUtilization);
-		System.out.println(arimaPredict(utilizationHistoryReversed));
+//		System.out.println(arimaPredict(utilizationHistoryReversed));
+		CalculateGoogleTrace();
 	}
 
 	/**
@@ -633,6 +633,33 @@ public class MathUtil {
 		totalpowori /= (predictData.size()-1);
 		double Thief = RMSE / (Math.sqrt(totalpow) + Math.sqrt(totalpowori));
 		return Thief;
+	}
+
+	public static void CalculateGoogleTrace() throws FileNotFoundException {
+		String trcepath = "D:/java_workspace/cloudsim-cloudsim-4.0/modules/cloudsim-examples/src/main/resources/workload/google/20110503";
+		File inputFolder = new File(trcepath);
+		File[] files = inputFolder.listFiles();
+		List<String> paths = new ArrayList<>();
+		for(File file : files){
+			String s = file.getAbsolutePath();
+			if(!s.startsWith("predict", s.length()-7)){
+				paths.add(file.getAbsolutePath());
+			}
+		}
+		List<Double> values = new ArrayList<>();
+		for(String path: paths){
+			Scanner scanner = new Scanner(new File(path));
+			while (scanner.hasNextLine()) {
+				values.add(Double.valueOf(scanner.nextLine()));
+			}
+			scanner.close();
+		}
+		DescriptiveStatistics statistics = getStatistics(values);
+        System.out.println("1/4位数：" + statistics.getPercentile(25));
+		System.out.println("中位数：" + statistics.getPercentile(50));
+		System.out.println("3/4中位数：" + statistics.getPercentile(75));
+		System.out.println("平均值：" + statistics.getMean());
+		System.out.println("标准差：" + statistics.getStandardDeviation());
 	}
 
 

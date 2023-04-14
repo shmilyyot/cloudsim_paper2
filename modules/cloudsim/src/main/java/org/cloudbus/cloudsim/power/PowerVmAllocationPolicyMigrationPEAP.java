@@ -317,8 +317,7 @@ public class PowerVmAllocationPolicyMigrationPEAP extends
         for(Vm vm: vmsToMigrateFromUnderUtilizedHost){
             vms.add(vm);
         }
-        migrationMap = getNewVmPlacement(vms, new HashSet<Host>(
-                new HashSet<>()));
+        migrationMap = getNewVmPlacement(vms, new HashSet<>(overUtilizedHosts));
 //        underloadVMsPlacement(migrationMap, excludedHostsForFindingUnderUtilizedHost, excludedHostsForFindingNewVmPlacement, vmsToMigrateFromUnderUtilizedHost);
         return migrationMap;
     }
