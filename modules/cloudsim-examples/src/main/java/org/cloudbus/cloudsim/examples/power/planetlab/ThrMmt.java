@@ -34,9 +34,9 @@ public class ThrMmt {
 	public static void main(String[] args) throws IOException {
 		boolean enableOutput = true;
 		boolean outputToFile = true;
-		String inputFolder = NonPowerAware.class.getClassLoader().getResource("workload/google").getPath();
+		String inputFolder = NonPowerAware.class.getClassLoader().getResource("workload/planetlab").getPath();
 		String outputFolder = "output";
-		String workload = "20110503"; // PlanetLab workload
+		String workload = "20110303"; // PlanetLab workload
 		String vmAllocationPolicy = "thr"; // Static Threshold (THR) VM allocation policy
 		String vmSelectionPolicy = "mmt"; // Minimum Migration Time (MMT) VM selection policy
 		String parameter = "0.8"; // the static utilization threshold

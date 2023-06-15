@@ -17,7 +17,7 @@ public class ThrTrendTrend {
         boolean outputToFile = true;
         String inputFolder = NonPowerAware.class.getClassLoader().getResource("workload/planetlab").getPath();
         String outputFolder = "output";
-        String workload = "20110420"; // PlanetLab workload
+        String workload = "20110306"; // PlanetLab workload
         String vmAllocationPolicy = "trendthr"; // Static Threshold (THR) VM allocation policy
         String vmSelectionPolicy = "trend"; // Minimum Migration Time (MMT) VM selection policy
         String parameter = "0.8"; // the static utilization threshold

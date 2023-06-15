@@ -47,6 +47,66 @@ public class PowerHostUtilizationHistory extends PowerHost {
 	}
 
 	String hostTrendType = null;
+
+	public double getLastPlaceTime() {
+		return lastPlaceTime;
+	}
+
+	public void setLastPlaceTime(double lastPlaceTime) {
+		this.lastPlaceTime = lastPlaceTime;
+	}
+
+	double lastPlaceTime = -1;
+
+	public double getLastOverloadTime() {
+		return lastOverloadTime;
+	}
+
+	public void setLastOverloadTime(double lastOverloadTime) {
+		this.lastOverloadTime = lastOverloadTime;
+	}
+
+	double lastOverloadTime = -1;
+
+	int afterPlaceOverloadTime = 0;
+
+	public int getLastOverloadInterval() {
+		return lastOverloadInterval;
+	}
+
+	public void setLastOverloadInterval(int lastOverloadInterval) {
+		this.lastOverloadInterval = lastOverloadInterval;
+	}
+
+	int lastOverloadInterval = -1;
+
+	public int getAfterPlaceOverloadTime() {
+		return afterPlaceOverloadTime;
+	}
+
+	public void setAfterPlaceOverloadTime(int afterPlaceOverloadTime) {
+		this.afterPlaceOverloadTime = afterPlaceOverloadTime;
+	}
+
+	public int getOverloadBeforePlaceAfterPlaceOverloadTime() {
+		return overloadBeforePlaceAfterPlaceOverloadTime;
+	}
+
+	public void setOverloadBeforePlaceAfterPlaceOverloadTime(int overloadBeforePlaceAfterPlaceOverloadTime) {
+		this.overloadBeforePlaceAfterPlaceOverloadTime = overloadBeforePlaceAfterPlaceOverloadTime;
+	}
+
+	int overloadBeforePlaceAfterPlaceOverloadTime = 0;
+
+	public Integer getOverloadTimes() {
+		return overloadTimes;
+	}
+
+	public void setOverloadTimes(Integer overloadTimes) {
+		this.overloadTimes = overloadTimes;
+	}
+
+	Integer overloadTimes = 0;
 	/**
 	 * Instantiates a new PowerHostUtilizationHistory.
 	 * 

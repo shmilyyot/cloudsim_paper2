@@ -1,6 +1,7 @@
 package org.cloudbus.cloudsim.power;
 
 import org.cloudbus.cloudsim.Host;
+import org.cloudbus.cloudsim.HostStateHistoryEntry;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -78,7 +79,8 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
     protected boolean isHostOverUtilized(PowerHost host) {
         double upperThreshold = getUtilizationThreshold();
         addHistoryEntry(host, upperThreshold);
-        return isHostCurrentOverUtilized(host);
+        Boolean currentOverload = isHostCurrentOverUtilized(host);
+        return currentOverload;
 //        return isHostCurrentOverUtilized(host) || isHostFutureOverUtilized(host) || isHostBeforeOverUtilized(host);
     }
 
@@ -529,22 +531,26 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
 //                if(Double.isNaN(cosSine)) {
 //                    cosSine = 1;
 //                }
-                if(cosSine < bestValue){
+                if(cosSine <= bestValue){
                     bestValue = cosSine;
                     powerHost = host;
                 }
             }
         }
-//        if(powerHost == null){
-//            for (PowerHost host: idleHostList){
-//                if (excludedHosts.contains(host)) {
-//                    continue;
-//                }
-//                if (host.isSuitableForVm(vm)) {
-//                    return (PowerHostUtilizationHistory) host;
-//                }
-//            }
-//        }
+        if(powerHost == null){
+            double minValue = Double.MAX_VALUE;
+            for (PowerHost host: hostList){
+                if (excludedHosts.contains(host) || idleHostSet.contains(host)) {
+                    continue;
+                }
+                if (host.isSuitableForVm(vm)) {
+                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, powerVm)) {
+                        continue;
+                    }
+                    return (PowerHostUtilizationHistory) host;
+                }
+            }
+        }
 
         return powerHost;
     }
@@ -560,5 +566,9 @@ public class PowerVmAllocationPolicyPredictTrendTHR extends PowerVmAllocationPol
         return tempHost;
     }
 
+    public void printUtilization(Host host){
+        PowerHostUtilizationHistory hostUtilizationHistory = (PowerHostUtilizationHistory) host;
+        System.out.println("主机"+host.getId()+"的历史资源利用率数组： "+Arrays.toString(hostUtilizationHistory.getUtilizationHistory()));
+    }
 
 }

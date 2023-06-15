@@ -487,6 +487,18 @@ public class Helper {
 		System.out.println("RMSE : " + RMSE/cnt);
 		System.out.println("MAE : " + MAE/cnt);
 		System.out.println("Thief : " + thief/cnt);
+
+		double avgOverload = 0.0;
+		int num = 0;
+		for (Host host: datacenter.getHostList()){
+			PowerHostUtilizationHistory hostU = (PowerHostUtilizationHistory) host;
+			if(hostU.getOverloadTimes() != 0){
+				avgOverload += ((double)hostU.getOverloadBeforePlaceAfterPlaceOverloadTime() / hostU.getAfterPlaceOverloadTime());
+				num++;
+				System.out.println("host id:" + hostU.getId() + "   |  过载次数： "+ hostU.getOverloadTimes() + "   |  放置后过载次数： " + hostU.getAfterPlaceOverloadTime() + "    | 过去过载后放置后再次过载次数： "+ hostU.getOverloadBeforePlaceAfterPlaceOverloadTime());
+			}
+		}
+		System.out.println("平均过载比率： "+ avgOverload / num);
 		Log.setDisabled(true);
 	}
 
