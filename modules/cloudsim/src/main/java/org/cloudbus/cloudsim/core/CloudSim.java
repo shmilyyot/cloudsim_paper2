@@ -241,6 +241,7 @@ public class CloudSim {
 	 * @return true, if successful otherwise.
 	 */
 	public static boolean terminateSimulation(double time) {
+		System.out.println(clock);
 		if (time <= clock) {
 			return false;
 		} else {

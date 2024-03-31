@@ -95,10 +95,10 @@ public class CloudSimExample5 {
 			String vmm = "Xen"; //VMM name
 
 			//create two VMs: the first one belongs to user1
-			Vm vm1 = new Vm(vmid, brokerId1, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+			Vm vm1 = new Vm(vmid, brokerId1, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), "");
 
 			//the second VM: this one belongs to user2
-			Vm vm2 = new Vm(vmid, brokerId2, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+			Vm vm2 = new Vm(vmid, brokerId2, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), "");
 
 			//add the VMs to the vmlists
 			vmlist1.add(vm1);

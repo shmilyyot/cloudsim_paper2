@@ -1,5 +1,7 @@
 package org.cloudbus.cloudsim;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -28,12 +30,19 @@ public class UtilizationModelPlanetLabInMemory implements UtilizationModel {
 	public UtilizationModelPlanetLabInMemory(String inputPath, double schedulingInterval)
 			throws NumberFormatException,
 			IOException {
-		data = new double[289];
+		data = new double[2881];
 		setSchedulingInterval(schedulingInterval);
 		BufferedReader input = new BufferedReader(new FileReader(inputPath));
 		int n = data.length;
 		for (int i = 0; i < n - 1; i++) {
-			data[i] = Integer.valueOf(input.readLine()) / 100.0;
+			String value = input.readLine();
+			if (StringUtils.isNotEmpty(value)) {
+				double parsed = Double.parseDouble(value);
+				int pvalue = (int) Math.ceil(parsed);
+				data[i] = pvalue / 100.0;
+			} else {
+				data[i] = 0;
+			}
 		}
 		data[n - 1] = data[n - 2];
 		input.close();

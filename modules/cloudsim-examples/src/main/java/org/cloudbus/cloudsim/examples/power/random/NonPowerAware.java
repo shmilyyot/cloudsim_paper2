@@ -56,7 +56,7 @@ public class NonPowerAware {
 			List<Cloudlet> cloudletList = RandomHelper.createCloudletList(
 					brokerId,
 					RandomConstants.NUMBER_OF_VMS);
-			List<Vm> vmList = Helper.createVmList(brokerId, cloudletList.size());
+			List<Vm> vmList = Helper.createVmList(brokerId, cloudletList.size(), "");
 			List<PowerHost> hostList = Helper.createHostList(RandomConstants.NUMBER_OF_HOSTS);
 
 			PowerDatacenterNonPowerAware datacenter = (PowerDatacenterNonPowerAware) Helper.createDatacenter(

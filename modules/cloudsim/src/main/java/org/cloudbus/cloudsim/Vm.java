@@ -139,7 +139,8 @@ public class Vm {
 			long bw,
 			long size,
 			String vmm,
-			CloudletScheduler cloudletScheduler) {
+			CloudletScheduler cloudletScheduler,
+			String workload) {
 		setId(id);
 		setUserId(userId);
 		setUid(getUid(userId, id));
@@ -159,8 +160,9 @@ public class Vm {
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
 		try {
-			ObjectInputStream input = new ObjectInputStream(Files.newInputStream(Paths.get("modules/cloudsim-examples/target/classes/workload/planetlab/20110303/predict\\vm_"+id+".obj")));
-			double[] data = (double[]) input.readObject();
+//			ObjectInputStream input = new ObjectInputStream(Files.newInputStream(Paths.get("modules/cloudsim-examples/target/classes/workload/google/"+workload+"/predict\\vm_"+id+".obj")));
+//			double[] data = (double[]) input.readObject();
+			double[] data =  new double[0];
 			setPredictUtilization(data);
 		} catch (Exception e) {
 			e.printStackTrace();

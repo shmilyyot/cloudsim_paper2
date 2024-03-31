@@ -63,7 +63,7 @@ public class PlanetLabRunner extends RunnerAbstract {
 	 * @see org.cloudbus.cloudsim.examples.power.RunnerAbstract#init(java.lang.String)
 	 */
 	@Override
-	protected void init(String inputFolder) {
+	protected void init(String inputFolder, String workload) {
 		try {
 			CloudSim.init(1, Calendar.getInstance(), false);
 
@@ -71,7 +71,7 @@ public class PlanetLabRunner extends RunnerAbstract {
 			int brokerId = broker.getId();
 
 			cloudletList = PlanetLabHelper.createCloudletListPlanetLab(brokerId, inputFolder);
-			vmList = Helper.createVmList(brokerId, cloudletList.size());
+			vmList = Helper.createVmList(brokerId, cloudletList.size(), workload);
 			hostList = Helper.createHostList(PlanetLabConstants.NUMBER_OF_HOSTS);
 		} catch (Exception e) {
 			e.printStackTrace();

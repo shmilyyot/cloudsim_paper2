@@ -58,7 +58,7 @@ public class NonPowerAware {
 			int brokerId = broker.getId();
 
 			List<Cloudlet> cloudletList = PlanetLabHelper.createCloudletListPlanetLab(brokerId, inputFolder);
-			List<Vm> vmList = Helper.createVmList(brokerId, cloudletList.size());
+			List<Vm> vmList = Helper.createVmList(brokerId, cloudletList.size(), "");
 			List<PowerHost> hostList = Helper.createHostList(PlanetLabConstants.NUMBER_OF_HOSTS);
 
 			PowerDatacenterNonPowerAware datacenter = (PowerDatacenterNonPowerAware) Helper.createDatacenter(

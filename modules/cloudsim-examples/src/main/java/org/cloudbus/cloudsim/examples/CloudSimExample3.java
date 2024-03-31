@@ -91,11 +91,11 @@ public class CloudSimExample3 {
 			String vmm = "Xen"; //VMM name
 
 			//create two VMs
-			Vm vm1 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+			Vm vm1 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared(),"");
 
 			//the second VM will have twice the priority of VM1 and so will receive twice CPU time
 			vmid++;
-			Vm vm2 = new Vm(vmid, brokerId, mips * 2, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+			Vm vm2 = new Vm(vmid, brokerId, mips * 2, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), "");
 
 			//add the VMs to the vmList
 			vmlist.add(vm1);

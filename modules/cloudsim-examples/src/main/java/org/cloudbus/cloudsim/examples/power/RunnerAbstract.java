@@ -81,7 +81,7 @@ public abstract class RunnerAbstract {
 			System.exit(0);
 		}
 
-		init(inputFolder + "/" + workload);
+		init(inputFolder + "/" + workload, workload);
 		start(
 				getExperimentName(workload, vmAllocationPolicy, vmSelectionPolicy, parameter),
 				outputFolder,
@@ -135,7 +135,7 @@ public abstract class RunnerAbstract {
 	 * 
 	 * @param inputFolder the input folder
 	 */
-	protected abstract void init(String inputFolder);
+	protected abstract void init(String inputFolder, String workload);
 
 	/**
 	 * Starts the simulation.
@@ -279,7 +279,7 @@ public abstract class RunnerAbstract {
 			PowerVmAllocationPolicyMigrationAbstract fallbackVmSelectionPolicy = new PowerVmAllocationPolicyMigrationStaticThreshold(
 					hostList,
 					vmSelectionPolicy,
-					0.7);
+					0.8);
 			vmAllocationPolicy = new PowerVmAllocationPolicyPredictTrend(
 					hostList,
 					vmSelectionPolicy,

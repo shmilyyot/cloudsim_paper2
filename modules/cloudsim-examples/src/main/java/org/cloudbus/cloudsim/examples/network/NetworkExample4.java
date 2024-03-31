@@ -88,7 +88,7 @@ public class NetworkExample4 {
 			String vmm = "Xen"; //VMM name
 
 			//create VM
-			Vm vm1 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+			Vm vm1 = new Vm(vmid, brokerId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), "");
 
 			//add the VM to the vmList
 			vmlist.add(vm1);

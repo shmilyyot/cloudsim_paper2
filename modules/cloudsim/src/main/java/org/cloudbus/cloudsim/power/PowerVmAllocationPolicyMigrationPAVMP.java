@@ -6,6 +6,7 @@ import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.core.CloudSim;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PowerVmAllocationPolicyMigrationPAVMP extends PowerVmAllocationPolicyMigrationAbstract{
     /** The static host CPU utilization threshold to detect over utilization.
@@ -44,7 +45,21 @@ public class PowerVmAllocationPolicyMigrationPAVMP extends PowerVmAllocationPoli
             totalRequestedMips += vm.getCurrentRequestedTotalMips();
         }
         double utilization = totalRequestedMips / host.getTotalMips();
-        return utilization > getUtilizationThreshold();
+        boolean overloaded = utilization > getUtilizationThreshold();
+        checkConsumption(host, overloaded);
+        return overloaded;
+    }
+
+    protected boolean isHostCurrentOverUtilized(PowerHost host) {
+        addHistoryEntry(host, getUtilizationThreshold());
+        double totalRequestedMips = 0;
+        for (Vm vm : host.getVmList()) {
+            totalRequestedMips += vm.getCurrentRequestedTotalMips();
+        }
+        double utilization = totalRequestedMips / host.getTotalMips();
+        boolean overloaded = utilization > getUtilizationThreshold();
+//        checkConsumption(host, overloaded);
+        return overloaded;
     }
 
     /**
@@ -128,7 +143,149 @@ public class PowerVmAllocationPolicyMigrationPAVMP extends PowerVmAllocationPoli
                 }
             }
         }
+        // 设置放置前过载的间隔
+        if(allocatedHost != null){
+            PowerHostUtilizationHistory host1 = (PowerHostUtilizationHistory) allocatedHost;
+            if (host1.vmCreate(vm)) {
+                host1.setLastOverloadInterval(checkOverloadInThePast(host1));
+                host1.vmDestroy(vm);
+            }
+            host1.setLastPlaceTime(CloudSim.clock());
+        }
         return allocatedHost;
+    }
+
+    @Override
+    public PowerHost findHostForVm(Vm vm, Set<? extends Host> excludedHosts) {
+        PowerHost allocatedHost = null;
+        double minPower = Double.MAX_VALUE;
+        if(getPlacement().equals("PABFD")){
+            for (PowerHost host : this.<PowerHost> getHostList()) {
+                if (excludedHosts.contains(host)) {
+                    continue;
+                }
+                if (host.isSuitableForVm(vm)) {
+                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
+                        continue;
+                    }
+
+                    try {
+                        double powerAfterAllocation = getPowerAfterAllocation(host, vm);
+                        if (powerAfterAllocation != -1) {
+                            double oripower = host.getPower();
+//						if(host.getUtilizationOfCpu() == 0)
+//						{
+//							oripower = 0;
+//						}
+                            double powerDiff = powerAfterAllocation - oripower;
+                            if (powerDiff < minPower) {
+                                minPower = powerDiff;
+                                allocatedHost = host;
+                            }
+                        }
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }else if(getPlacement().equals("FFD")){
+            List<PowerHost> list = getHostList();
+            for (PowerHost host : list) {
+                if (excludedHosts.contains(host)) {
+                    continue;
+                }
+                if (host.isSuitableForVm(vm)) {
+                    if (getUtilizationOfCpuMips(host) != 0 && isHostOverUtilizedAfterAllocation(host, vm)) {
+                        continue;
+                    }
+                    allocatedHost = host;
+                    break;
+                }
+            }
+        }
+        // 设置放置前过载的间隔
+        if(allocatedHost != null){
+            PowerHostUtilizationHistory host1 = (PowerHostUtilizationHistory) allocatedHost;
+            if (host1.vmCreate(vm)) {
+                host1.setLastOverloadInterval(checkOverloadInThePast(host1));
+                host1.vmDestroy(vm);
+            }
+            host1.setLastPlaceTime(CloudSim.clock());
+        }
+        return allocatedHost;
+    }
+
+    public static int TIME_INTERVAL = 5;
+
+    protected void checkConsumption(PowerHost host, boolean currentOverload){
+        PowerHostUtilizationHistory host1 = (PowerHostUtilizationHistory) host;
+        // 当前过载
+        if(currentOverload){
+            // 过载次数+1
+            host1.setOverloadTimes(host1.getOverloadTimes() + 1);
+            // 找到上一次放置的时间
+            if(host1.getLastPlaceTime() != -1 && host1.getLastPlaceTime() < CloudSim.clock()){
+                //上一次放置到当前过载的时间间隔
+                int placeTimeStep = (int) ((CloudSim.clock() - host1.getLastPlaceTime())/ 300 + 1);
+                //如果这个间隔小，说明放置完很快就过载了
+                if(placeTimeStep <= TIME_INTERVAL){
+                    host1.setAfterPlaceOverloadTime(host1.getAfterPlaceOverloadTime()+1);
+                }
+//				if(host1.getLastOverloadInterval() != -1){
+//					host1.setOverloadBeforePlaceAfterPlaceOverloadTime(host1.getOverloadBeforePlaceAfterPlaceOverloadTime() + 1);
+//					if(host1.getUtilizationHistory().length >= 30){
+//						System.out.println("放置的时间间隔: " + placeTimeStep + "   |放置之前的时间间隔： "+ host1.getLastOverloadInterval() + "   | "+Arrays.toString(host1.getUtilizationHistory()));
+//					}
+//				}
+                //找到上一次放置之前主机过载的间隔
+                if(host1.getLastPlaceTime() >= host1.getLastOverloadTime()){
+                    int overloadTimeStep = (int) ((host1.getLastPlaceTime() - host1.getLastOverloadTime())/ 300 + 1);
+                    //如果这个间隔小，说明过去发生了过载
+                    if(overloadTimeStep <= TIME_INTERVAL){
+                        host1.setOverloadBeforePlaceAfterPlaceOverloadTime(host1.getOverloadBeforePlaceAfterPlaceOverloadTime() + 1);
+                    }
+                }
+            }
+            host1.setLastOverloadTime(CloudSim.clock());
+        }
+    }
+
+    private int checkOverloadInThePast(PowerHostUtilizationHistory allocatedHost) {
+        double[] history = allocatedHost.getUtilizationHistory();
+        for(int i = 0; i < Math.min(TIME_INTERVAL, history.length); ++i){
+            if(history[i] > getUtilizationThreshold()){
+                return i+1;
+            }
+        }
+        return -1;
+    }
+
+    protected boolean isHostOverUtilizedAfterAllocation(PowerHost host, Vm vm) {
+        boolean isHostOverUtilizedAfterAllocation = true;
+        if (host.vmCreate(vm)) {
+            isHostOverUtilizedAfterAllocation = isHostCurrentOverUtilized(host);
+            host.vmDestroy(vm);
+        }
+        return isHostOverUtilizedAfterAllocation;
+    }
+
+    @Override
+    protected List<? extends Vm>
+    getVmsToMigrateFromHosts(List<PowerHostUtilizationHistory> overUtilizedHosts) {
+        List<Vm> vmsToMigrate = new LinkedList<Vm>();
+        for (PowerHostUtilizationHistory host : overUtilizedHosts) {
+            while (true) {
+                Vm vm = getVmSelectionPolicy().getVmToMigrate(host);
+                if (vm == null) {
+                    break;
+                }
+                vmsToMigrate.add(vm);
+                host.vmDestroy(vm);
+                if (!isHostCurrentOverUtilized(host)) {
+                    break;
+                }
+            }
+        }
+        return vmsToMigrate;
     }
 
 }

@@ -68,8 +68,9 @@ public class NetworkVm extends Vm implements Comparable<Object> {
 			long bw,
 			long size,
 			String vmm,
-			CloudletScheduler cloudletScheduler) {
-		super(id, userId, mips, pesNumber, ram, bw, size, vmm, cloudletScheduler);
+			CloudletScheduler cloudletScheduler,
+			String workload) {
+		super(id, userId, mips, pesNumber, ram, bw, size, vmm, cloudletScheduler, workload);
 
 		cloudletlist = new ArrayList<NetworkCloudlet>();
 	}

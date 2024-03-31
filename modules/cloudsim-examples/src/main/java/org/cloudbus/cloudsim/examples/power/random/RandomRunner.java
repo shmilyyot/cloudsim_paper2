@@ -61,7 +61,7 @@ public class RandomRunner extends RunnerAbstract {
 	 * @see org.cloudbus.cloudsim.examples.power.RunnerAbstract#init(java.lang.String)
 	 */
 	@Override
-	protected void init(String inputFolder) {
+	protected void init(String inputFolder, String workload) {
 		try {
 			CloudSim.init(1, Calendar.getInstance(), false);
 
@@ -69,7 +69,7 @@ public class RandomRunner extends RunnerAbstract {
 			int brokerId = broker.getId();
 
 			cloudletList = RandomHelper.createCloudletList(brokerId, RandomConstants.NUMBER_OF_VMS);
-			vmList = Helper.createVmList(brokerId, cloudletList.size());
+			vmList = Helper.createVmList(brokerId, cloudletList.size(), workload);
 			hostList = Helper.createHostList(RandomConstants.NUMBER_OF_HOSTS);
 		} catch (Exception e) {
 			e.printStackTrace();

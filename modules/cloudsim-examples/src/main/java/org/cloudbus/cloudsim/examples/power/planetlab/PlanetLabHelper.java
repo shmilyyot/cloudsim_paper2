@@ -46,8 +46,9 @@ public class PlanetLabHelper {
 		long fileSize = 300;
 		long outputSize = 300;
 		UtilizationModel utilizationModelNull = new UtilizationModelNull();
-
+		inputFolderName = inputFolderName.substring(1);
 		File inputFolder = new File(inputFolderName);
+		System.out.println(inputFolderName);
 		File[] files = inputFolder.listFiles();
 		List<String> path = new ArrayList<>();
 		for(File file : files){
@@ -68,7 +69,7 @@ public class PlanetLabHelper {
 						new UtilizationModelPlanetLabInMemory(
 								path.get(i),
 								Constants.SCHEDULING_INTERVAL), utilizationModelNull, utilizationModelNull);
-//				double []data = ((UtilizationModelPlanetLabInMemory)cloudlet.getUtilizationModelCpu()).getData();
+				double []data = ((UtilizationModelPlanetLabInMemory)cloudlet.getUtilizationModelCpu()).getData();
 //				ArimaOrder arimaOrder = MathUtil.findBestOrder(data);
 //				int len = data.length;
 //				double []predictData = new double[len + 1];

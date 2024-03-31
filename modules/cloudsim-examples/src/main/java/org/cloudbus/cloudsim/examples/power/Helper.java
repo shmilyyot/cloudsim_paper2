@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerDynamicWorkload;
 import org.cloudbus.cloudsim.Datacenter;
@@ -61,7 +62,7 @@ public class Helper {
 	 * 
 	 * @return the list< vm>
 	 */
-	public static List<Vm> createVmList(int brokerId, int vmsNumber) {
+	public static List<Vm> createVmList(int brokerId, int vmsNumber, String workload) {
 		List<Vm> vms = new ArrayList<Vm>();
 		for (int i = 0; i < vmsNumber; i++) {
 			int vmType = i / (int) Math.ceil((double) vmsNumber / Constants.VM_TYPES);
@@ -76,7 +77,8 @@ public class Helper {
 					1,
 					"Xen",
 					new CloudletSchedulerDynamicWorkload(Constants.VM_MIPS[vmType], Constants.VM_PES[vmType]),
-					Constants.SCHEDULING_INTERVAL));
+					Constants.SCHEDULING_INTERVAL,
+					workload));
 		}
 		return vms;
 	}
@@ -490,15 +492,26 @@ public class Helper {
 
 		double avgOverload = 0.0;
 		int num = 0;
+		int overloadTime = 0;
+		int afterPlaceOverloadTime = 0;
+		int overloadBeforePlaceAfterPlaceOverloadTime = 0;
 		for (Host host: datacenter.getHostList()){
 			PowerHostUtilizationHistory hostU = (PowerHostUtilizationHistory) host;
+			overloadTime += hostU.getOverloadTimes();
+			afterPlaceOverloadTime += hostU.getAfterPlaceOverloadTime();
+			overloadBeforePlaceAfterPlaceOverloadTime += hostU.getOverloadBeforePlaceAfterPlaceOverloadTime();
 			if(hostU.getOverloadTimes() != 0){
 				avgOverload += ((double)hostU.getOverloadBeforePlaceAfterPlaceOverloadTime() / hostU.getAfterPlaceOverloadTime());
 				num++;
-				System.out.println("host id:" + hostU.getId() + "   |  过载次数： "+ hostU.getOverloadTimes() + "   |  放置后过载次数： " + hostU.getAfterPlaceOverloadTime() + "    | 过去过载后放置后再次过载次数： "+ hostU.getOverloadBeforePlaceAfterPlaceOverloadTime());
+//				System.out.println("host id:" + hostU.getId() + "   |  过载次数： "+ hostU.getOverloadTimes() + "   |  放置后过载次数： " + hostU.getAfterPlaceOverloadTime() + "    | 过去过载后放置后再次过载次数： "+ hostU.getOverloadBeforePlaceAfterPlaceOverloadTime());
 			}
 		}
 		System.out.println("平均过载比率： "+ avgOverload / num);
+		List<String> csvData = new ArrayList<>();
+		String csvLine = StringUtils.EMPTY + overloadTime + "," + afterPlaceOverloadTime + "," + overloadBeforePlaceAfterPlaceOverloadTime;
+		csvData.add(csvLine);
+		CsvUtil. writeToCsv(StringUtils.EMPTY, csvData,"D:\\cloudsim_paper2\\output\\log\\upvmc555.csv", true);
+		System.out.println("过载次数： "+ overloadTime + "   |  放置后过载次数： " + afterPlaceOverloadTime + "    | 过去过载后放置后再次过载次数： "+ overloadBeforePlaceAfterPlaceOverloadTime);
 		Log.setDisabled(true);
 	}
 

@@ -401,7 +401,8 @@ public class NetDatacenterBroker extends SimEntity {
 					bw,
 					size,
 					vmm,
-					new NetworkCloudletSpaceSharedScheduler());
+					new NetworkCloudletSpaceSharedScheduler(),
+					"");
 			linkDC.processVmCreateNetwork(vm);
 			// add the VM to the vmList
 			getVmList().add(vm);

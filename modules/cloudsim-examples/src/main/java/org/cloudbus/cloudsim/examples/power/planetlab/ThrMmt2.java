@@ -23,7 +23,7 @@ import java.io.IOException;
  * @author Anton Beloglazov
  * @since Jan 5, 2012
  */
-public class ThrMmt {
+public class ThrMmt2 {
 
 	/**
 	 * The main method.
@@ -41,28 +41,50 @@ public class ThrMmt {
 		String vmSelectionPolicy = "mmt"; // Minimum Migration Time (MMT) VM selection policy
 		String parameter = "0.8"; // the static utilization threshold
 		String placement = Constants.placement;
-		for (String nworkload : Constants.workloads) {
-			new PlanetLabRunner(
-					enableOutput,
-					outputToFile,
-					inputFolder,
-					outputFolder,
-					nworkload,
-					vmAllocationPolicy,
-					vmSelectionPolicy,
-					parameter,
-					Constants.placement);
-		}
-//		new PlanetLabRunner(
-//				enableOutput,
-//				outputToFile,
-//				inputFolder,
-//				outputFolder,
-//				workload,
-//				vmAllocationPolicy,
-//				vmSelectionPolicy,
-//				parameter,
-//				Constants.placement);
+
+		new PlanetLabRunner(
+				enableOutput,
+				outputToFile,
+				inputFolder,
+				outputFolder,
+				workload,
+				"thr",
+				"mmt",
+				parameter,
+				"PABFD");
+
+		new PlanetLabRunner(
+				enableOutput,
+				outputToFile,
+				inputFolder,
+				outputFolder,
+				workload,
+				"thr",
+				"mmt",
+				parameter,
+				"FFD");
+
+		new PlanetLabRunner(
+				enableOutput,
+				outputToFile,
+				inputFolder,
+				outputFolder,
+				workload,
+				"upvmc",
+				"mmt",
+				parameter,
+				"PABFD");
+
+		new PlanetLabRunner(
+				enableOutput,
+				outputToFile,
+				inputFolder,
+				outputFolder,
+				workload,
+				"peap",
+				"peacr",
+				parameter,
+				"PABFD");
 	}
 
 }
